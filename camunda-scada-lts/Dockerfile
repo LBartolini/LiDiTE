@@ -28,7 +28,7 @@ RUN apt-get update -qq && apt-get install -y \
   openjdk-11-jdk-headless
 ## ANT
 ARG ANT_VERSION=1.10.12
-RUN wget -O - https://downloads.apache.org/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz | tar -xzf - \
+RUN wget -O - https://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz | tar -xzf - \
   && ln -sf /usr/local/src/apache-ant-${ANT_VERSION} /opt/apache-ant
 ## ANT
 ARG TOMCAT_VERSION=7.0.109
