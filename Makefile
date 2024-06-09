@@ -44,7 +44,7 @@ endif
 
 # Wrapper around Docker compose
 define docker_compose
-	docker-compose $(foreach module,$(modules),-f $(module).yml) $(1) $(services)
+	docker compose $(foreach module,$(modules),-f $(module).yml) $(1) $(services)
 endef
 
 #
@@ -54,7 +54,7 @@ endef
 # Build all container images
 build:
 	$(call docker_compose,$@)
-	docker-compose -f dovesnap/dovesnap.yml build
+	docker compose -f dovesnap/dovesnap.yml build
 
 # Start the Dovesnap network plugin
 dovesnap-up:
@@ -62,12 +62,12 @@ dovesnap-up:
 	@if [ "$(p)" = "t" ]; then\
         echo "dovesnap plugin running";\
 	else\
-		cd dovesnap; docker-compose -f dovesnap.yml up -d;\
+		cd dovesnap; docker compose -f dovesnap.yml up -d;\
     fi
 
 # Stop the Dovesnap network plugin
 dovesnap-down:
-	cd dovesnap; docker-compose -f dovesnap.yml down
+	cd dovesnap; docker compose -f dovesnap.yml down
 
 # Run the framwork
 up: sysctls dovesnap-up
@@ -101,7 +101,7 @@ logsf: sysctls
 # Push images
 push:
 	$(call docker_compose,$@)
-	docker-compose -f dovesnap/dovesnap.yml push
+	docker compose -f dovesnap/dovesnap.yml push
 
 # Tweak OS settings
 sysctls:

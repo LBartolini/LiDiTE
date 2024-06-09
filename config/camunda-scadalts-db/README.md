@@ -8,11 +8,11 @@ Generate with
 
 ```sh
 echo 'USE scadalts;' > config/camunda-scadalts-db/settings.sql
-sudo docker-compose -f docker-compose.base.yml -f docker-compose.sv.yml exec scada_db mysqldump scadalts \
+sudo docker compose -f docker compose.base.yml -f docker compose.sv.yml exec scada_db mysqldump scadalts \
   -u root --password=root \
   --no-data --routines \
   >> config/camunda-scadalts-db/settings.sql
-sudo docker-compose -f docker-compose.base.yml -f docker-compose.sv.yml exec scada_db mysqldump scadalts \
+sudo docker compose -f docker compose.base.yml -f docker compose.sv.yml exec scada_db mysqldump scadalts \
   -u root --password=root \
   --no-create-info \
   --hex-blob --extended-insert \
@@ -27,5 +27,5 @@ sudo docker-compose -f docker-compose.base.yml -f docker-compose.sv.yml exec sca
 Restore with
 
 ```sh
-sudo docker-compose -f docker-compose.base.yml -f docker-compose.sv.yml exec -T scada_db mysql -u root --password=root scadalts < config/camunda-scadalts-db/settings.sql
+sudo docker compose -f docker compose.base.yml -f docker compose.sv.yml exec -T scada_db mysql -u root --password=root scadalts < config/camunda-scadalts-db/settings.sql
 ```
