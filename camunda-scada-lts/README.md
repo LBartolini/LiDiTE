@@ -14,3 +14,9 @@ The following environment variables must be provided:
 - `SCADA_DB_PASS` the ScadaLTS database password
 
 Additionally, images contained in ScadaLTS dashboards must be put inside a folder and mounted at the `/scada-lts-uploads` path.
+
+## Website
+
+10.0.0.21:8080/ScadaLTS/login.htm
+
+admin:admin
