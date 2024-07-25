@@ -1,0 +1,9 @@
+version: '3'
+services:
+  custom-attack:
+    build: ./custom-attack
+    networks:
+      a20_enterprise: 
+        ipv4_address: 192.168.50.42
+      zzz999_management:
+        ipv4_address: 10.0.0.42

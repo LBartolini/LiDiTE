@@ -31,7 +31,8 @@ modules_all := \
 	savona-cabinet-locatelli \
 	savona-cabinet-marchi \
 	savona-cabinet-seb \
-	chassis-vpn 
+	chassis-vpn \
+	chassis-custom-attack
 
 # Which modules are to be instantiated
 modules := \
