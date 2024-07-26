@@ -42,3 +42,8 @@ if __name__ == "__main__":
 
     webServer.server_close()
     print("Server stopped.")
+
+
+
+    # Possible Hash per password Scada DB
+    # Base64(unhex(SHA-1($plaintext)))
