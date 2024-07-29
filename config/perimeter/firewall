@@ -45,6 +45,10 @@ uci -q batch <<-EOF >/dev/null
   set firewall.@forwarding[-1].src='ent'
   set firewall.@forwarding[-1].dest='wan'
 
+  add firewall forwarding
+  set firewall.@forwarding[-1].src='ent'
+  set firewall.@forwarding[-1].dest='lan'
+
   # web interface from WAN
   add firewall rule
   set firewall.@rule[-1].enabled=1  

