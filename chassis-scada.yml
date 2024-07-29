@@ -30,6 +30,7 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     networks:
       a25_ind_enterprise:
+        ipv4_address: 172.16.10.123
       zzz999_management:
         ipv4_address: 10.0.0.22
     volumes:
