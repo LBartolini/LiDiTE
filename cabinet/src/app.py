@@ -7,9 +7,9 @@ from threading import Thread
 
 import docker
 
-from pymodbus.server.asynchronous import StartTcpServer, StopServer
-from pymodbus.datastore import ModbusSequentialDataBlock
-from pymodbus.datastore import ModbusSlaveContext, ModbusServerContext
+from pymodbus3.server.asynchronous import StartTcpServer, StopServer
+from pymodbus3.datastore import ModbusSequentialDataBlock
+from pymodbus3.datastore import ModbusSlaveContext, ModbusServerContext
 
 from docker_mgmt import calculate_load, start, stop
 

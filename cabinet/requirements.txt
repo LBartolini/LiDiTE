@@ -1,2 +1,2 @@
 docker
-pymodbus[twisted]
+pymodbus3[twisted]

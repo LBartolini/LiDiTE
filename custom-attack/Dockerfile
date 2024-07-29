@@ -1,5 +1,6 @@
 FROM python:3-alpine
 RUN mkdir -p /opt/custom-attack
+RUN apk add nmap nmap-scripts
 
 WORKDIR /opt/custom-attack
 COPY requirements.txt /opt/custom-attack
