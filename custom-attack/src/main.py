@@ -70,8 +70,11 @@ def get_ip_address(ifname):
 if __name__ == "__main__":
     ip = get_ip_address('eth0')
     print('ip: '+ip)
+    with open('scripts/fetch_and_send.sh', 'r') as f:
+        data = f.read()
+    
     with open('scripts/fetch_and_send.sh', 'w') as f:
-        f.write(f'#!/bin/sh\ncurl {ip}:{PORT}/test')
+        f.write(data % (ip, PORT))
 
     ### WEBSERVER
     webserverThread = threading.Thread(target=app.run, args=('0.0.0.0', PORT))
