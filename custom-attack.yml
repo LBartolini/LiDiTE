@@ -4,6 +4,9 @@ services:
     depends_on: ["frontend", "scada"]
     build: ./custom-attack
     restart: on-failure
+    environment:
+      SCADA_HOST: scada
+      SCADA_PORT: 8080
     networks:
       a20_enterprise: 
         ipv4_address: 192.168.50.42
