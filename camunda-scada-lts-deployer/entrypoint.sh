@@ -6,7 +6,7 @@ if [ -z "${WORKFLOWS_DIR}" ]; then
   exit 1
 fi
 # Deploy
-wait-for-it "${CAMUNDA_HOST}:${CAMUNDA_PORT}" -- echo 'Camunda is alive'
+wait-for-it -t 0 --strict "${CAMUNDA_HOST}:${CAMUNDA_PORT}" -- echo 'Camunda is alive'
 for workflow in "${WORKFLOWS_DIR}"/*.bpmn; do
   workflow_name=$(basename "$workflow" | rev | cut -d'.' -f 2- | rev)
   echo "Deploying ${workflow} as ${workflow_name}"

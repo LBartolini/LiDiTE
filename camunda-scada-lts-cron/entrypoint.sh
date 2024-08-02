@@ -10,7 +10,7 @@ if [ -z "${INTERVAL_SECONDS}" ]; then
   exit 1
 fi
 # Deploy
-wait-for-it "${CAMUNDA_HOST}:${CAMUNDA_PORT}" -- echo 'Camunda is alive'
+wait-for-it -t 0 --strict "${CAMUNDA_HOST}:${CAMUNDA_PORT}" -- echo 'Camunda is alive'
 while true; do
   sleep "${INTERVAL_SECONDS}"
   for f in "${CRON_DIR}"/*; do

