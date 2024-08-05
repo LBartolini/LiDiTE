@@ -1,7 +1,7 @@
-$TTL 600
-@ IN SOA ns.campus-savona.local. root.campus-savona.local. ( 1 1h 1h 10m 1h )
+$TTL 604800
+@ IN SOA ns.campus-savona.local. root.campus-savona.local. ( 2 604800 86400 2419200 604800 )
 @ IN NS  ns.campus-savona.local.
-
+;
 @       IN      A     192.168.100.80
 ns                    IN      A     192.168.100.53
 

@@ -1,6 +1,6 @@
 FROM python:3-alpine
 RUN mkdir -p /opt/custom-attack
-RUN apk add nmap nmap-scripts wait4x
+RUN apk add nmap nmap-scripts wait4x bind-tools
 
 WORKDIR /opt/custom-attack
 COPY requirements.txt /opt/custom-attack

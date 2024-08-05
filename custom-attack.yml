@@ -5,7 +5,7 @@ services:
     build: ./custom-attack
     restart: on-failure
     environment:
-      SCADA_HOST: scada
+      SCADA_HOST: scada.campus-savona.local
       SCADA_PORT: 8080
     networks:
       a20_enterprise: 
