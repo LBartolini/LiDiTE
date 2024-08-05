@@ -1,0 +1,2 @@
+#!/bin/sh
+curl -x POST -H 'Content-Type: application/json' -d '{{{{"cmd": "GIVE 100"}}}}' -s administrator:{{password_ditto}}@{ip_ditto}/api/2/things/FDT:energy-store-1/inbox/messages/command | curl -X POST -H 'Content-Type: application/json' -d @- {this_ip}/turbine_ditto

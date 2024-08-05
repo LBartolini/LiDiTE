@@ -30,6 +30,10 @@ uci -q batch <<-EOF >/dev/null
   set firewall.@forwarding[-1].dest='wan'
 
   add firewall forwarding
+  set firewall.@forwarding[-1].src='dmz'
+  set firewall.@forwarding[-1].dest='lan'
+
+  add firewall forwarding
   set firewall.@forwarding[-1].src='lan'
   set firewall.@forwarding[-1].dest='dmz'
 

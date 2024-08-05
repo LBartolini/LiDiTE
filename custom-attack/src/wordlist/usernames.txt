@@ -1,7 +1,9 @@
 admin
 administrator
 john
-pippo
-pluto
 paperino
-test
+mark
+root
+admin1
+service
+supervisor
