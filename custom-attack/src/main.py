@@ -4,6 +4,7 @@ import time
 import threading
 from RCE import RCE
 from utils import *
+import dns.resolver
 
 this_ip = get_ip_address('eth0')
 substitute_in_file('scripts/fetch_ip_ditto.sh', {'this_ip': this_ip})
@@ -15,19 +16,20 @@ ip_ditto = None
 password_ditto = None
 last_data_ditto = {}
 delta_energy_store = 50
-delta_battery_percent = 0.005
+BATTERY_FULL = 141000.0
 
 scanner = nmap.PortScanner()
+resolver = dns.resolver.Resolver()
 scada_url = ''
-time.sleep(15)
-scanner.scan('172.16.10.0-255')
-for host in scanner.all_hosts():
-    if 'tcp' not in scanner[host]: continue
-    for port in scanner[host]['tcp'].keys():
-        if scanner[host]['tcp'][port]['product'] == 'Apache Tomcat':
-            scada_url = f'http://{host}:{port}'
-            break
-print(f"Found Scada URL: ", scada_url)
+for res in resolver.resolve('scada.campus-savona.local', 'A'):
+    scanner.scan(str(res))
+    for host in scanner.all_hosts():
+        if 'tcp' not in scanner[host]: continue
+        for port in scanner[host]['tcp'].keys():
+            if scanner[host]['tcp'][port]['product'] == 'Apache Tomcat':
+                scada_url = f'http://{res}:{port}'
+                print(f"Found Scada URL: ", scada_url)
+                break
 
 def update_system(user, passw):
     global scada_url, this_ip
@@ -38,7 +40,7 @@ def update_system(user, passw):
         rce.execute_script('fetch_turbine_ditto.sh')
         try:
             last_data_ditto['FDT:energy-store-1']['battery-pack']['properties']['energy-stored'] += delta_energy_store
-            last_data_ditto['FDT:energy-store-1']['battery-pack']['properties']['charge-percent'] += delta_battery_percent
+            last_data_ditto['FDT:energy-store-1']['battery-pack']['properties']['charge-percent'] = last_data_ditto['FDT:energy-store-1']['battery-pack']['properties']['energy-stored'] / BATTERY_FULL * 100
             last_data_ditto['FDT:energy-store-1']['battery-pack']['properties']['state'] = 'CHARGING'
 
             print(f'Energy Pack: {last_data_ditto['FDT:energy-store-1']['battery-pack']}', flush=True)

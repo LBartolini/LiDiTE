@@ -1,11 +1,11 @@
 version: '3'
 services:
   custom-attack:
-    depends_on: ["frontend", "scada"]
+    depends_on: ["frontend", "scada", "bind9"]
     build: ./custom-attack
     restart: on-failure
     environment:
-      SCADA_HOST: scada.campus-savona.local
+      SCADA_HOST: scada
       SCADA_PORT: 8080
     networks:
       a20_enterprise: 

